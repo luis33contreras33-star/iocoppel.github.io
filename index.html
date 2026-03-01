@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ruleta Coppel - Tu confianza se recompensa</title>
+  <style>
+    :root{
+      --coppel-blue:#0B4FB6;
+      --coppel-blue2:#0A3F93;
+      --coppel-yellow:#FFD400;
+      --ink:#0b1b3a;
+      --bg:#f3f6fb;
+      --card:#ffffff;
+      --shadow: 0 18px 40px rgba(10,30,70,.12);
+      --ring: rgba(11,79,182,.20);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(1200px 600px at 50% -10%, rgba(11,79,182,.18), transparent 60%),
+        radial-gradient(900px 500px at 10% 0%, rgba(255,212,0,.18), transparent 55%),
+        var(--bg);
+      color:var(--ink);
+    }
+
+    .wrap{
+      width:min(620px, 94vw);
+      margin:22px auto 28px;
+      padding: 10px 0 22px;
+    }
+
+    .headline{
+      background: linear-gradient(180deg, var(--coppel-blue), var(--coppel-blue2));
+      color:#fff;
+      border-radius: 22px;
+      padding: 18px 16px;
+      text-align:center;
+      box-shadow: var(--shadow);
+    }
+    .headline h1{
+      margin:0;
+      font-size: clamp(20px, 4.8vw, 30px);
+      line-height:1.15;
+      font-weight: 900;
+      letter-spacing:.2px;
+    }
+    .brand{
+      margin-top:10px;
+      font-weight:800;
+      letter-spacing:.3px;
+      opacity:.95;
+      font-size: 15px;
+    }
+    .brand span{
+      display:inline-block;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.25);
+    }
+
+    .card{
+      margin-top: 16px;
+      background: var(--card);
+      border-radius: 26px;
+      padding: 18px 14px 18px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow:hidden;
+    }
+
+    /* patrón sutil fuera de la ruleta */
+    .card::before{
+      content:"";
+      position:absolute; inset:-40px;
+      background:
+        radial-gradient(circle at 12px 12px, rgba(11,79,182,.10) 2px, transparent 3px) 0 0 / 28px 28px,
+        radial-gradient(circle at 12px 12px, rgba(255,212,0,.10) 2px, transparent 3px) 14px 14px / 28px 28px;
+      opacity:.45;
+      pointer-events:none;
+    }
+
+    .stage{
+      position:relative;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 6px 0 6px;
+      z-index:1;
+    }
+
+    /* flecha */
+    .pointer{
+      position:absolute;
+      top: 6px;
+      width:0;height:0;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-top: 34px solid var(--coppel-yellow);
+      filter: drop-shadow(0 8px 10px rgba(0,0,0,.12));
+      z-index: 5;
+    }
+    .pointer::after{
+      content:"";
+      position:absolute;
+      left:-10px; top:-30px;
+      width:0;height:0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-top: 20px solid rgba(0,0,0,.08);
+      transform: translateY(4px);
+      z-index:-1;
+    }
+
+    .wheelWrap{
+      position: relative;
+      width: min(520px, 92vw);
+      aspect-ratio: 1 / 1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin-top: 18px;
+    }
+
+    canvas#wheel{
+      width:100%;
+      height:100%;
+      border-radius:50%;
+      background: transparent;
+    }
+
+    .centerBtn{
+      position:absolute;
+      width: 38%;
+      height: 38%;
+      border-radius: 50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      cursor:pointer;
+      user-select:none;
+      background: radial-gradient(circle at 30% 25%, #fff5b3 0%, var(--coppel-yellow) 55%, #f4c900 100%);
+      border: 10px solid var(--coppel-blue);
+      box-shadow: 0 16px 30px rgba(0,0,0,.16), inset 0 0 0 6px rgba(255,255,255,.45);
+      z-index: 4;
+      transition: transform .08s ease;
+    }
+    .centerBtn:active{ transform: scale(.98); }
+    .centerBtn .pill{
+      position:absolute;
+      top: 18%;
+      font-weight: 900;
+      font-size: clamp(13px, 2.9vw, 18px);
+      color: var(--coppel-blue2);
+      background: rgba(255,255,255,.45);
+      border: 1px solid rgba(0,0,0,.10);
+      padding: 6px 12px;
+      border-radius: 999px;
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,.25);
+    }
+    .centerBtn .cta{
+      margin-top: 12%;
+      font-weight: 950;
+      letter-spacing: .6px;
+      font-size: clamp(16px, 4.2vw, 26px);
+      color: var(--coppel-blue2);
+      line-height: 1.05;
+      text-transform: uppercase;
+    }
+
+    .hint{
+      text-align:center;
+      margin-top: 10px;
+      color: rgba(11,27,58,.65);
+      font-weight: 600;
+      z-index: 2;
+      position:relative;
+    }
+
+    .actions{
+      display:flex;
+      justify-content:center;
+      margin-top: 14px;
+      z-index: 2;
+      position:relative;
+    }
+    .btn{
+      appearance:none;
+      border:0;
+      cursor:pointer;
+      font-weight: 900;
+      padding: 14px 20px;
+      border-radius: 12px;
+      background: var(--coppel-yellow);
+      color: var(--coppel-blue2);
+      box-shadow: 0 14px 28px rgba(0,0,0,.14);
+      font-size: 18px;
+    }
+    .btn:active{ transform: translateY(1px); }
+
+    /* Ticket resultado */
+    .result{
+      margin-top: 14px;
+      display:none;
+      z-index: 2;
+      position:relative;
+    }
+    .ticket{
+      width:min(520px, 92vw);
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 16px;
+      border: 2px dashed rgba(11,79,182,.35);
+      box-shadow: 0 18px 40px rgba(10,30,70,.10);
+      padding: 14px 14px 12px;
+      position:relative;
+      overflow:hidden;
+    }
+    .ticket::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: linear-gradient(90deg, rgba(11,79,182,.06), rgba(255,212,0,.07), rgba(11,79,182,.06));
+      opacity:.9;
+      pointer-events:none;
+    }
+    .ticketInner{
+      position:relative;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .ticketTitle{
+      font-weight: 950;
+      font-size: 14px;
+      letter-spacing:.3px;
+      color: rgba(11,27,58,.70);
+      text-transform: uppercase;
+    }
+    .ticketPrize{
+      font-weight: 950;
+      font-size: clamp(18px, 4.6vw, 26px);
+      color: var(--coppel-blue2);
+      line-height:1.05;
+    }
+    .ticketTag{
+      font-weight: 900;
+      font-size: 12px;
+      color: rgba(11,27,58,.65);
+      background: rgba(11,79,182,.08);
+      border: 1px solid rgba(11,79,182,.20);
+      padding: 6px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    /* Confetti canvas */
+    #confetti{
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 999;
+      display:none;
+    }
+
+    /* Accesibilidad */
+    .sr{
+      position:absolute;
+      width:1px;height:1px;
+      padding:0;margin:-1px;
+      overflow:hidden;clip:rect(0,0,0,0);
+      white-space:nowrap;border:0;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="confetti"></canvas>
+
+  <div class="wrap">
+    <div class="headline">
+      <h1>Tu confianza se recompensa.<br/>Gira y aprovecha.</h1>
+      <div class="brand"><span>Coppel</span></div>
+    </div>
+
+    <div class="card">
+      <div class="stage">
+        <div class="pointer" aria-hidden="true"></div>
+
+        <div class="wheelWrap" aria-label="Ruleta de premios">
+          <canvas id="wheel" width="900" height="900"></canvas>
+
+          <div class="centerBtn" id="centerBtn" role="button" tabindex="0" aria-label="Girar ruleta">
+            <div class="pill">Coppel</div>
+            <div class="cta">¡GIRA<br/>AQUÍ!</div>
+            <span class="sr">Toca para girar</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hint">Toca el centro para girar</div>
+
+      <div class="actions">
+        <button class="btn" id="spinBtn">Girar Ruleta</button>
+      </div>
+
+      <div class="result" id="result">
+        <div class="ticket" role="status" aria-live="polite">
+          <div class="ticketInner">
+            <div>
+              <div class="ticketTitle">Resultado</div>
+              <div class="ticketPrize" id="prizeText">—</div>
+            </div>
+            <div class="ticketTag">¡Felicidades!</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // Premios definitivos (6 secciones)
+  const segments = [
+    { label: "10% Dcto.\nMuebles y Ropa", type: "descuento" },
+    { label: "10% Dcto.\nÓptica", type: "descuento" },
+    { label: "10% Dcto.\nMuebles y Ropa", type: "descuento" },
+    { label: "10% Dcto.\nÓptica", type: "descuento" },
+    { label: "10% Dcto.\nPróxima visita", type: "visita" },
+    { label: "Segunda\noportunidad", type: "suerte" },
+  ];
+
+  const colors = [
+    { fill: "#0B4FB6", text: "#ffffff" },  // azul
+    { fill: "#FFD400", text: "#0A3F93" },  // amarillo
+    { fill: "#ffffff", text: "#0b1b3a" },  // blanco
+    { fill: "#0B4FB6", text: "#ffffff" },  // azul
+    { fill: "#FFD400", text: "#0A3F93" },  // amarillo
+    { fill: "#ffffff", text: "#0b1b3a" },  // blanco
+  ];
+
+  const canvas = document.getElementById("wheel");
+  const ctx = canvas.getContext("2d");
+  const spinBtn = document.getElementById("spinBtn");
+  const centerBtn = document.getElementById("centerBtn");
+  const resultBox = document.getElementById("result");
+  const prizeText = document.getElementById("prizeText");
+
+  let angle = 0;           // radianes
+  let spinning = false;
+  let targetAngle = 0;
+  let startAngle = 0;
+  let startTime = 0;
+  let duration = 0;
+
+  // Helpers
+  const TAU = Math.PI * 2;
+  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+  const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
+
+  function draw() {
+    const W = canvas.width, H = canvas.height;
+    const cx = W/2, cy = H/2;
+    const radius = Math.min(cx, cy) - 22;
+
+    ctx.clearRect(0,0,W,H);
+
+    // Sombra y aro exterior
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius+10, 0, TAU);
+    ctx.shadowColor = "rgba(0,0,0,.18)";
+    ctx.shadowBlur = 24;
+    ctx.fillStyle = "rgba(255,255,255,.01)";
+    ctx.fill();
+    ctx.restore();
+
+    // Aro exterior azul
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius+6, 0, TAU);
+    ctx.lineWidth = 22;
+    ctx.strokeStyle = "#0B4FB6";
+    ctx.stroke();
+
+    // Aro interior suave
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius-64, 0, TAU);
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = "rgba(255,212,0,.35)";
+    ctx.stroke();
+
+    // Segmentos
+    const n = segments.length;
+    const step = TAU / n;
+
+    for(let i=0;i<n;i++){
+      const a0 = angle + i*step;
+      const a1 = a0 + step;
+
+      // sector
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy, radius-6, a0, a1);
+      ctx.closePath();
+      ctx.fillStyle = colors[i].fill;
+      ctx.fill();
+
+      // línea divisoria
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy, radius-6, a0, a1);
+      ctx.closePath();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "rgba(10,30,70,.12)";
+      ctx.stroke();
+
+      // texto (rotado y con salto de línea)
+      const mid = (a0 + a1) / 2;
+      ctx.save();
+      ctx.translate(cx,cy);
+      ctx.rotate(mid);
+
+      // zona de texto
+      const textRadius = radius - 120;
+      ctx.translate(textRadius, 0);
+      ctx.rotate(Math.PI/2);
+
+      // Tipografía responsive dentro del canvas
+      const base = clamp((radius/10), 16, 28);
+      ctx.font = `900 ${base}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+      ctx.fillStyle = colors[i].text;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      const lines = segments[i].label.split("\n");
+      const lineHeight = base * 1.05;
+      const totalH = (lines.length-1) * lineHeight;
+
+      lines.forEach((ln, idx) => {
+        ctx.fillText(ln, 0, (idx*lineHeight) - totalH/2);
+      });
+
+      ctx.restore();
+    }
+
+    // centro (aro extra para que se vea “corporativo”)
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius-74, 0, TAU);
+    ctx.lineWidth = 14;
+    ctx.strokeStyle = "#0A3F93";
+    ctx.stroke();
+
+    // centro blanco
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius-92, 0, TAU);
+    ctx.fillStyle = "#ffffff";
+    ctx.fill();
+
+    // brillo
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx - radius*0.18, cy - radius*0.18, radius*0.35, 0, TAU);
+    const g = ctx.createRadialGradient(cx - radius*0.18, cy - radius*0.18, 10, cx - radius*0.18, cy - radius*0.18, radius*0.35);
+    g.addColorStop(0, "rgba(255,255,255,.55)");
+    g.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = g;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function pickWinner(finalAngle) {
+    // La flecha está arriba (270° en canvas tradicional),
+    // pero como nuestra ruleta se dibuja con ángulo 'angle',
+    // convertimos el ángulo a un índice de segmento.
+    const n = segments.length;
+    const step = TAU / n;
+
+    // Dirección: el segmento que queda alineado con la flecha superior.
+    // En canvas, 0 rad apunta a la derecha. Flecha arriba es -90°.
+    const pointer = -Math.PI/2;
+
+    // Calcula el ángulo relativo
+    let rel = (pointer - finalAngle) % TAU;
+    if(rel < 0) rel += TAU;
+
+    const idx = Math.floor(rel / step) % n;
+    return idx;
+  }
+
+  function spin() {
+    if(spinning) return;
+
+    spinning = true;
+    resultBox.style.display = "none";
+
+    const spins = 6 + Math.random() * 4; // vueltas completas
+    const extra = Math.random() * TAU;   // extra aleatorio
+    startAngle = angle;
+    targetAngle = angle + spins*TAU + extra;
+
+    startTime = performance.now();
+    duration = 3200 + Math.random()*700;
+
+    requestAnimationFrame(animate);
+  }
+
+  function animate(t) {
+    const p = clamp((t - startTime) / duration, 0, 1);
+    const e = easeOutCubic(p);
+    angle = startAngle + (targetAngle - startAngle) * e;
+    draw();
+
+    if(p < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      spinning = false;
+
+      // Normaliza a 0..TAU
+      const final = ((angle % TAU) + TAU) % TAU;
+      const winner = pickWinner(final);
+
+      const nice = segments[winner].label.replace(/\n/g, " ");
+      prizeText.textContent = nice;
+      resultBox.style.display = "block";
+
+      launchConfetti();
+    }
+  }
+
+  // Confetti simple (sin librerías)
+  const confCanvas = document.getElementById("confetti");
+  const cctx = confCanvas.getContext("2d");
+  let confetti = [];
+  let confettiRunning = false;
+
+  function resizeConfetti() {
+    confCanvas.width = Math.floor(window.innerWidth * devicePixelRatio);
+    confCanvas.height = Math.floor(window.innerHeight * devicePixelRatio);
+    cctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  }
+  window.addEventListener("resize", resizeConfetti);
+  resizeConfetti();
+
+  function launchConfetti() {
+    confCanvas.style.display = "block";
+    confettiRunning = true;
+    confetti = [];
+
+    const count = 120;
+    const w = window.innerWidth;
+    const colors = ["#0B4FB6","#FFD400","#ffffff","#0A3F93"];
+
+    for(let i=0;i<count;i++){
+      confetti.push({
+        x: w/2 + (Math.random()-0.5)*200,
+        y: window.innerHeight*0.25 + (Math.random()-0.5)*60,
+        vx: (Math.random()-0.5)*7,
+        vy: - (3 + Math.random()*6),
+        g: 0.18 + Math.random()*0.12,
+        r: 3 + Math.random()*5,
+        a: Math.random()*Math.PI,
+        va: (Math.random()-0.5)*0.2,
+        color: colors[i % colors.length],
+        life: 0,
+        max: 140 + Math.random()*40
+      });
+    }
+
+    requestAnimationFrame(confettiTick);
+    setTimeout(() => {
+      confettiRunning = false;
+    }, 1400);
+  }
+
+  function confettiTick() {
+    cctx.clearRect(0,0,window.innerWidth,window.innerHeight);
+
+    confetti.forEach(p => {
+      p.life++;
+      p.vy += p.g;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.a += p.va;
+
+      cctx.save();
+      cctx.translate(p.x, p.y);
+      cctx.rotate(p.a);
+      cctx.fillStyle = p.color;
+      cctx.globalAlpha = Math.max(0, 1 - (p.life / p.max));
+      cctx.fillRect(-p.r, -p.r, p.r*2.2, p.r*1.2);
+      cctx.restore();
+    });
+
+    confetti = confetti.filter(p => p.life < p.max && p.y < window.innerHeight + 40);
+
+    if(confettiRunning || confetti.length){
+      requestAnimationFrame(confettiTick);
+    } else {
+      confCanvas.style.display = "none";
+      cctx.clearRect(0,0,window.innerWidth,window.innerHeight);
+    }
+  }
+
+  // Eventos
+  spinBtn.addEventListener("click", spin);
+  centerBtn.addEventListener("click", spin);
+  centerBtn.addEventListener("keydown", (e) => {
+    if(e.key === "Enter" || e.key === " ") { e.preventDefault(); spin(); }
+  });
+
+  // Primera pintada
+  draw();
+})();
+</script>
+</body>
+</html>
